@@ -1,5 +1,3 @@
-
-
 pluginManagement {
     val kotlinVersion: String by settings
     plugins {
@@ -14,3 +12,4 @@ plugins {
 rootProject.name = "kotlinOtusPrj"
 
 include(":m1l1-first")
+include(":m2l1-dsl")
