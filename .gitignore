@@ -1,5 +1,6 @@
 /.gradle/
 **/build/
+**/.gradle/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/**/build/
 
@@ -12,3 +13,6 @@
 
 ### Mac OS ###
 .DS_Store
+#/build-plugin/.gradle/
+#/compositeLessons/.gradle/
+#/shipBattleProject/.gradle/
