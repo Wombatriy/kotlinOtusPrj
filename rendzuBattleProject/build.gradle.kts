@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
 }
 
-group = "kotlinOtisProj.shipBattleProject"
+group = "kotlinOtisProj.rendzuBattleProject"
 version = "1.0-SNAPSHOT"
 
 repositories {

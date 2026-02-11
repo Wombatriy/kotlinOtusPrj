@@ -8,4 +8,4 @@ pluginManagement {
 rootProject.name = "kotlinOtusPrj"
 
 includeBuild("compositeLessons")
-includeBuild("shipBattleProject")
+includeBuild("rendzuBattleProject")
