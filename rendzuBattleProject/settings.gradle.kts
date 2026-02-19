@@ -1,4 +1,4 @@
-rootProject.name = "shipBattleProject"
+rootProject.name = "rendzuBattleProject"
 
 dependencyResolutionManagement {
     versionCatalogs {
@@ -22,4 +22,4 @@ pluginManagement {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-include(":shipBattle")
+include(":rendzuBattle")
