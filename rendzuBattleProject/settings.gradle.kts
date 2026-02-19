@@ -23,3 +23,4 @@ pluginManagement {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":rendzuBattle")
+include(":openApiHomework")
