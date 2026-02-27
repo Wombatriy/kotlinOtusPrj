@@ -1,0 +1,688 @@
+openapi: 3.0.3
+info:
+  title: Rendzu Duel API
+  version: 1.0.0
+  description: API для дуэльной игры Рэндзю (похожа на "крестики-нолики" на большом
+    поле).'
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: http://localhost:8080/v1
+tags:
+  - name: player
+    description: Регистрация и профиль игрока
+  - name: lobby
+    description: Лобби и комнаты дуэлей (ожидающие игроков)
+  - name: field
+    description: Игра внутри комнаты (поле, ходы, состояние)
+  - name: rating
+    description: Рейтинг игрока (победы/поражения)
+paths:
+  /players/register:
+    post:
+      tags:
+        - player
+      summary: Регистрация пользователя
+      operationId: playerRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerRegisterRequest'
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerRegisterResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /lobby/rooms/create:
+    post:
+      tags:
+        - lobby
+      summary: Создать комнату для дуэли
+      operationId: lobbyCreateRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LobbyCreateRoomRequest'
+      responses:
+        '200':
+          description: Комната создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyCreateRoomResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /lobby/rooms/open/list:
+    post:
+      tags:
+        - lobby
+      summary: Получить список открытых комнат
+      operationId: lobbyListOpenRooms
+      responses:
+        '200':
+          description: Список открытых комнат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyListOpenRoomsResponse'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LobbyListOpenRoomsRequest'
+  /lobby/rooms/join:
+    post:
+      tags:
+        - lobby
+      summary: Присоединиться к комнате для дуэли
+      operationId: lobbyJoinRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LobbyJoinRoomPostRequest'
+      responses:
+        '200':
+          description: Присоединение выполнено (игра может стартовать)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyJoinRoomResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /lobby/rooms/close:
+    post:
+      tags:
+        - lobby
+      summary: Закрыть/удалить комнату
+      operationId: lobbyCloseRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LobbyCloseRoomRequest'
+      responses:
+        '200':
+          description: Комната удалена/закрыта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyDeleteRoomResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /fields/get:
+    post:
+      tags:
+        - field
+      summary: Получить текущее состояние поля
+      operationId: fieldGetState
+      responses:
+        '200':
+          description: Состояние поля
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelFieldState'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldGetRequest'
+  /fields/move:
+    post:
+      tags:
+        - field
+      summary: Ход игрока
+      operationId: fieldMove
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldMovePostRequest'
+      responses:
+        '200':
+          description: Ход принят (или игра завершилась)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldMoveResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /players/rating/get:
+    post:
+      tags:
+        - rating
+      summary: Получить рейтинг игрока
+      operationId: playerGetRating
+      responses:
+        '200':
+          description: Рейтинг игрока
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerRatingResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerRatingGetRequest'
+
+
+components:
+  parameters:
+    DuelFieldId:
+      in: path
+      name: duelFieldId
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Идентификатор комнаты/поля дуэли
+    PlayerId:
+      in: path
+      name: playerId
+      required: true
+      schema:
+        type: string
+      description: Идентификатор игрока
+  responses:
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Конфликт состояния (например, комната уже заполнена или не ваш
+        ход)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: ROOM_FULL
+        message:
+          type: string
+          example: Комната уже заполнена
+        details:
+          type: object
+          additionalProperties: true
+    PlayerRegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: qwerty123
+    PlayerRegisterResponse:
+      type: object
+      required:
+        - playerId
+      properties:
+        playerId:
+          type: string
+          description: Идентификатор игрока для дальнейших запросов
+          example: 1a2b3c4d5e
+    LobbyCreateRoomRequest:
+      type: object
+      required:
+        - creatorPlayerId
+        - fieldWidth
+        - fieldHeight
+      properties:
+        creatorPlayerId:
+          type: string
+          example: 1a2b3c4d5e
+        fieldWidth:
+          type: integer
+          minimum: 5
+          maximum: 25
+          example: 15
+        fieldHeight:
+          type: integer
+          minimum: 5
+          maximum: 25
+          example: 15
+    LobbyCreateRoomResponse:
+      type: object
+      required:
+        - duelFieldId
+        - room
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+          example: 9e6e8e1a-9f3d-4c2a-a9f1-0a0b0c0d0e0f
+        room:
+          $ref: '#/components/schemas/DuelRoom'
+    LobbyListOpenRoomsResponse:
+      type: object
+      required:
+        - rooms
+        - total
+      properties:
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/DuelRoomSummary'
+        total:
+          type: integer
+          description: Общее количество открытых комнат на момент запроса
+          example: 3
+    LobbyJoinRoomRequest:
+      type: object
+      required:
+        - playerId
+      properties:
+        playerId:
+          type: string
+          example: 7f8e9d
+    LobbyJoinRoomResponse:
+      type: object
+      required:
+        - room
+      properties:
+        room:
+          $ref: '#/components/schemas/DuelRoom'
+    LobbyDeleteRoomRequest:
+      type: object
+      required:
+        - playerId
+      properties:
+        playerId:
+          type: string
+          description: Игрок, который инициирует закрытие/удаление
+          example: 1a2b3c4d5e
+    LobbyDeleteRoomResponse:
+      type: object
+      required:
+        - duelFieldId
+        - status
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          description: Итоговый статус комнаты
+          enum:
+            - CANCELLED
+            - FINISHED
+          example: CANCELLED
+    DuelRoomSummary:
+      type: object
+      required:
+        - duelFieldId
+        - fieldWidth
+        - fieldHeight
+        - status
+        - createdAt
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+        fieldWidth:
+          type: integer
+        fieldHeight:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DuelRoomStatus'
+        createdAt:
+          type: string
+          format: date-time
+    DuelRoom:
+      type: object
+      required:
+        - duelFieldId
+        - fieldWidth
+        - fieldHeight
+        - status
+        - players
+        - createdAt
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+        fieldWidth:
+          type: integer
+        fieldHeight:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DuelRoomStatus'
+        players:
+          type: array
+          description: 'Участники комнаты. В WAITING обычно 1 игрок, в IN_PROGRESS
+            — 2.
+
+            '
+          items:
+            $ref: '#/components/schemas/DuelPlayer'
+        nextTurnPlayerId:
+          type: string
+          nullable: true
+          description: Чей сейчас ход (null, если игра не началась)
+        winnerPlayerId:
+          type: string
+          nullable: true
+          description: Победитель (если FINISHED)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    DuelPlayer:
+      type: object
+      required:
+        - playerId
+        - symbol
+      properties:
+        playerId:
+          type: string
+        symbol:
+          $ref: '#/components/schemas/PlayerSymbol'
+    DuelRoomStatus:
+      type: string
+      enum:
+        - WAITING
+        - IN_PROGRESS
+        - FINISHED
+        - CANCELLED
+      description: 'WAITING — комната создана и ждёт второго игрока.
+
+        IN_PROGRESS — игра идёт (2 игрока).
+
+        FINISHED — игра завершена.
+
+        CANCELLED — комната отменена/удалена.
+
+        '
+    PlayerSymbol:
+      type: string
+      enum:
+        - X
+        - O
+    DuelFieldState:
+      type: object
+      required:
+        - duelFieldId
+        - fieldWidth
+        - fieldHeight
+        - status
+        - cells
+        - moveNumber
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+        fieldWidth:
+          type: integer
+        fieldHeight:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DuelRoomStatus'
+        cells:
+          type: array
+          description: 'Список занятых клеток. Координаты 0-based:
+
+            x ∈ [0..fieldWidth-1], y ∈ [0..fieldHeight-1].
+
+            '
+          items:
+            $ref: '#/components/schemas/CellMark'
+        moveNumber:
+          type: integer
+          description: Номер последнего принятого хода (0 если ходов ещё не было)
+          example: 12
+        nextTurnPlayerId:
+          type: string
+          nullable: true
+        winnerPlayerId:
+          type: string
+          nullable: true
+        winReason:
+          type: string
+          nullable: true
+          enum:
+            - FIVE_IN_A_ROW
+            - RESIGN
+            - MOVE_TIMEOUT
+        lastMoveAt:
+          type: string
+          format: date-time
+          nullable: true
+        moveDeadlineAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дедлайн следующего хода (если включено правило таймаута)
+    CellMark:
+      type: object
+      required:
+        - x
+        - y
+        - symbol
+        - playerId
+      properties:
+        x:
+          type: integer
+          minimum: 0
+          example: 7
+        y:
+          type: integer
+          minimum: 0
+          example: 7
+        symbol:
+          $ref: '#/components/schemas/PlayerSymbol'
+        playerId:
+          type: string
+    FieldMoveRequest:
+      type: object
+      required:
+        - playerId
+        - x
+        - y
+      properties:
+        playerId:
+          type: string
+          example: 1a2b3c4d5e
+        x:
+          type: integer
+          minimum: 0
+          example: 7
+        y:
+          type: integer
+          minimum: 0
+          example: 7
+    FieldMoveResponse:
+      type: object
+      required:
+        - accepted
+        - state
+      properties:
+        accepted:
+          type: boolean
+          description: true если ход принят
+          example: true
+        move:
+          $ref: '#/components/schemas/Move'
+        state:
+          $ref: '#/components/schemas/DuelFieldState'
+    Move:
+      type: object
+      required:
+        - playerId
+        - symbol
+        - x
+        - y
+        - moveNumber
+      properties:
+        playerId:
+          type: string
+        symbol:
+          $ref: '#/components/schemas/PlayerSymbol'
+        x:
+          type: integer
+        y:
+          type: integer
+        moveNumber:
+          type: integer
+          description: Номер хода (начиная с 1)
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+    PlayerRatingResponse:
+      type: object
+      required:
+        - playerId
+        - wins
+        - losses
+      properties:
+        playerId:
+          type: string
+        wins:
+          type: integer
+          minimum: 0
+          example: 10
+        losses:
+          type: integer
+          minimum: 0
+          example: 7
+        draws:
+          type: integer
+          minimum: 0
+          nullable: true
+          example: 0
+    LobbyListOpenRoomsRequest:
+      type: object
+      description: Параметры получения открытых комнат
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          example: 20
+        offset:
+          type: integer
+          minimum: 0
+          default: 0
+          example: 0
+    LobbyJoinRoomPostRequest:
+      type: object
+      required:
+        - duelFieldId
+        - playerId
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-4a1b-9c2d-1234567890ab
+        playerId:
+          type: string
+          example: 7f8e9d
+    LobbyCloseRoomRequest:
+      type: object
+      required:
+        - duelFieldId
+        - playerId
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-4a1b-9c2d-1234567890ab
+        playerId:
+          type: string
+          description: Игрок, который инициирует закрытие/удаление
+          example: 1a2b3c4d5e
+    FieldGetRequest:
+      type: object
+      required:
+        - duelFieldId
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-4a1b-9c2d-1234567890ab
+    FieldMovePostRequest:
+      type: object
+      required:
+        - duelFieldId
+        - playerId
+        - x
+        - y
+      properties:
+        duelFieldId:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-4a1b-9c2d-1234567890ab
+        playerId:
+          type: string
+          example: 1a2b3c4d5e
+        x:
+          type: integer
+          minimum: 0
+          example: 7
+        y:
+          type: integer
+          minimum: 0
+          example: 7
+    PlayerRatingGetRequest:
+      type: object
+      required:
+        - playerId
+      properties:
+        playerId:
+          type: string
+          example: 1a2b3c4d5e

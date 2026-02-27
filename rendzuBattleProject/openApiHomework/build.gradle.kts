@@ -3,9 +3,12 @@ plugins {
     alias(libs.plugins.openapi.generator)
 }
 
+//println("ROOT DIR = ${rootProject.rootDir}")
+//println("PROJECT DIR = ${project.projectDir}")
+
 sourceSets {
     main {
-        java.srcDir(layout.buildDirectory.dir("generate-resources/main/src/main/kotlin"))
+        kotlin.srcDir(layout.buildDirectory.dir("generate-resources/main/src/main/kotlin"))
     }
 }
 
@@ -19,8 +22,8 @@ openApiGenerate {
     apiPackage.set("$openapiGroup.api")
     modelPackage.set("$openapiGroup.models")
     invokerPackage.set("$openapiGroup.invoker")
-    inputSpec.set("specs/specs.yaml")
-//    inputSpec.set(rootProject.ext["specs"] as String) // <-
+    inputSpec.set(rootProject.ext["rendzuDuel"] as String)
+//    inputSpec.set(rootProject.file("specs/rendzuDuel.yaml").absolutePath)
 
     /**
      * Здесь указываем, что нам нужны только модели, все остальное не нужно
@@ -50,7 +53,6 @@ dependencies {
     implementation(libs.jackson.kotlin)
     implementation(libs.jackson.datatype)
     testImplementation(kotlin("test-junit"))
-//    testImplementation(projects.okMarketplaceStubs)
 }
 
 tasks {
