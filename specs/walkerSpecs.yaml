@@ -1,0 +1,335 @@
+openapi: 3.0.3
+info:
+  title: "Walking simulator API"
+  description: This is a open world where players fight each other
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+tags:
+  - name: player
+    description: Игрок
+paths:
+  /player/create:
+    post:
+      tags:
+        - player
+      summary: Create player
+      operationId: playerCreate
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerCreateRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerCreateResponse'
+  /player/read:
+    post:
+      tags:
+        - player
+      summary: Read all players in radius
+      operationId: playerRead
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerReadRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerReadResponse'
+  /player/update:
+    post:
+      tags:
+        - player
+      summary: Update player position in world
+      operationId: playerUpdate
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerUpdateRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerUpdateResponse'
+  /player/delete:
+    post:
+      tags:
+        - player
+      summary: Delete dead dummy of player
+      operationId: playerDelete
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerDeleteRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerDeleteResponse'
+
+components:
+  schemas:
+
+    IRequest:
+      type: object
+      description: Базовый интерфейс для всех запросов
+      properties:
+        requestType:
+          type: string
+          description: Поле-дескриминатор для вычисления типа запроса
+          example: create
+      discriminator:
+        propertyName: requestType
+        mapping:
+          create: '#/components/schemas/PlayerCreateRequest'
+          read: '#/components/schemas/PlayerReadRequest'
+          update: '#/components/schemas/PlayerUpdateRequest'
+          delete: '#/components/schemas/PlayerDeleteRequest'
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        group:
+          type: string
+        field:
+          type: string
+        message:
+          type: string
+
+    ResponseResult:
+      type: string
+      enum:
+        - success
+        - error
+
+    IResponse:
+      type: object
+      description: Базовый интерфейс для всех ответов
+      properties:
+        responseType:
+          type: string
+          description: Поле-дескриминатор для вычисления типа запроса
+          example: create
+        result:
+          $ref: '#/components/schemas/ResponseResult'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+
+      discriminator:
+        propertyName: responseType
+        mapping:
+          create: '#/components/schemas/PlayerCreateResponse'
+          read: '#/components/schemas/PlayerReadResponse'
+          update: '#/components/schemas/PlayerUpdateResponse'
+          delete: '#/components/schemas/PlayerDeleteResponse'
+
+
+    UserId:
+      type: string
+      description: Идентификатор пользователя
+
+    DummyId:
+      type: string
+      description: Идентификатор текущей куклы игрока
+
+    UserLock:
+      type: string
+      description: Версия оптимистичной блокировки
+
+    Position:
+      type: object
+      description: Позиция игрока
+      properties:
+        x:
+          type: integer
+          description: x
+        y:
+          type: integer
+          description: y
+
+    PlayerCommons:
+      type: object
+      description: Объект описывает свойства игрока
+      properties:
+        health:
+          type: integer
+          description: здоровье куклы игрока
+          default: 100
+        position:
+          $ref: '#/components/schemas/Position'
+        dummyId:
+          $ref: '#/components/schemas/DummyId'
+        state:
+          $ref: '#/components/schemas/DummyState'
+
+    DummyState:
+      type: string
+      description: 'жив или мертв'
+      enum:
+        - alive
+        - dead
+
+
+
+    PlayerCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/SimulatorRequestDebug'
+        - type: object
+          properties:
+            playerId:
+              $ref: '#/components/schemas/UserId'
+
+    PlayerCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/PlayerCommons'
+
+
+
+
+    PlayerReadRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/SimulatorRequestDebug'
+        - $ref: '#/components/schemas/Position'
+        - type: object
+          properties:
+            radius:
+              type: integer
+              description: радиус обзора
+
+    PlayerReadResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/PlayersInVisibleRange'
+
+
+
+
+    PlayerUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/SimulatorRequestDebug'
+        - type: object
+          properties:
+            newPlayerPosition:
+              $ref: '#/components/schemas/PlayerUpdateObject'
+
+    PlayerUpdateObject:
+      allOf:
+        - $ref: '#/components/schemas/UserId'
+        - $ref: '#/components/schemas/PlayerCommons'
+        - type: object
+          properties:
+            lock:
+              $ref: '#/components/schemas/UserLock'
+
+    PlayerUpdateResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/PlayersInVisibleRange'
+
+
+
+
+
+    PlayerDeleteRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/SimulatorRequestDebug'
+        - type: object
+          properties:
+            deadDummyId:
+              $ref: '#/components/schemas/PlayerDeleteObject'
+
+    PlayerDeleteObject:
+      allOf:
+        - type: object
+          properties:
+            playerId:
+              $ref: '#/components/schemas/UserId'
+            dummyId:
+              $ref: '#/components/schemas/DummyId'
+            lock:
+              $ref: '#/components/schemas/UserLock'
+
+    PlayerDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+
+
+
+
+    PlayersInVisibleRange:
+      allOf:
+        - type: object
+          description: Список игроков в зоне видимости
+          properties:
+            playersInRange:
+              type: array
+              items:
+                $ref: '#/components/schemas/PlayerCommons'
+
+
+
+
+
+    # STUBS ======================
+    SimulatorRequestDebug:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/SimulatorRequestDebugMode'
+        stub:
+          $ref: '#/components/schemas/SimulatorRequestDebugStubs'
+
+    SimulatorRequestDebugMode:
+      type: string
+      enum:
+        - prod
+        - test
+        - stub
+        -
+    SimulatorRequestDebugStubs:
+      type: string
+      description: Перечисления всех стабов
+      enum:
+        - success
+        - notFound
+        - badId
+        - badTitle
+        - badDescription
+        - badVisibility
+        - cannotDelete
+        - badSearchString

@@ -22,7 +22,7 @@ openApiGenerate {
     apiPackage.set("$openapiGroup.api")
     modelPackage.set("$openapiGroup.models")
     invokerPackage.set("$openapiGroup.invoker")
-    inputSpec.set(rootProject.ext["rendzuDuel"] as String)
+    inputSpec.set(rootProject.ext["walkerSpecs"] as String)
 //    inputSpec.set(rootProject.file("specs/rendzuDuel.yaml").absolutePath)
 
     /**

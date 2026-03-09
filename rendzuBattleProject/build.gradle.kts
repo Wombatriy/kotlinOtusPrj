@@ -12,7 +12,7 @@ repositories {
 
 ext {
     val specDir = layout.projectDirectory.dir("../specs")
-    set("rendzuDuel", specDir.file("rendzuDuel.yaml").toString())
+    set("walkerSpecs", specDir.file("walkerSpecs.yaml").toString())
 //    set("rendzuDuel-v2", specDir.file("rendzuDuel.yaml").toString())
 }
 
