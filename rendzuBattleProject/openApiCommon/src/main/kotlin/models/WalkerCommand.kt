@@ -1,10 +1,9 @@
 package models
 
-enum class RendzuCommand {
+enum class WalkerCommand {
     NONE,
     CREATE,
     READ,
     UPDATE,
-    DELETE,
-    SEARCH
+    DELETE
 }
